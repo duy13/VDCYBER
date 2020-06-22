@@ -18,7 +18,7 @@ Install CentOS Server 7 x86_64: http://centos.org/
 -------------
 ```
 yum -y update ; reboot
-curl -L https://github.com/duy13/VDCYBER/vCyberPanel.sh -o vCyberPanel.sh
+curl -L https://github.com/duy13/VDCYBER/raw/master/vCyberPanel.sh -o vCyberPanel.sh
 chmod 700 vCyberPanel.sh
 bash vCyberPanel.sh
  

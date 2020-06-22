@@ -283,11 +283,11 @@ HTTPS_Backend	https://127.0.0.1:8443
 echo '*/21  *  *  *  * root /usr/bin/vddos-autoadd panel cyberpanel openlitespeed' >> /etc/crontab
 echo '2 2 * * * root acme.sh --upgrade ; vddos-autoadd ssl-again' >> /etc/crontab
 
-curl -L https://github.com/duy13/VDCYBER/freeram.sh -o /root/freeram.sh
+curl -L https://github.com/duy13/VDCYBER/raw/master/freeram.sh -o /root/freeram.sh
 echo '* * * * * root bash /root/freeram.sh' >> /etc/crontab
 echo '13 * * * * root find /usr/local/lsws/cachedata -type f -mmin +59 -delete 2>/dev/null' >> /etc/crontab
 
-curl -L https://github.com/duy13/VDCYBER/cyber-control.zip -o /root/cyber-control.zip
+curl -L https://github.com/duy13/VDCYBER/raw/master/cyber-control.zip -o /root/cyber-control.zip
 cd /root ; unzip cyber-control.zip; rm -f cyber-control.zip; mv cyber-control /
 ln -s /cyber-control/home.sh /usr/bin/cyber-control
 chmod 700 /cyber-control/*.sh
