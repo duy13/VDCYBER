@@ -2,4 +2,4 @@
 b77084ff66a9009452787b34048a6d60  freeram.sh
 9a132cf102a1a9fa7c1a39fe1d8e380d  md5sum.txt
 b52b9f053d1d2250c9e968292ee474cb  README.md
-7e4d4042f5c691f80f4359f69129a97f  vCyberPanel.sh
+ba50e7e959b19257b32d973fb7d35c2f  vCyberPanel.sh

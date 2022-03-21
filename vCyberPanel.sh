@@ -123,9 +123,6 @@ service dovecot restart
 
 s='A604800' ; r='A31536000' ; sed -i "s#$s#$r#g" /usr/local/lsws/conf/httpd_config.conf;
 
-service lsws restart
-
-
 
 curl -k -L --silent https://127.0.0.1:8090
 curl -k -L --silent https://'$IP':8090
@@ -143,8 +140,14 @@ curl -k -L --silent https://'$IP':8090
 /usr/bin/cyberpanel createPackage --owner admin --packageName 100GB --diskSpace 100000 --bandwidth 0 --emailAccounts 100000 --dataBases 100000 --ftpAccounts 100000 --allowedDomains 100000
 /usr/bin/cyberpanel createPackage --owner admin --packageName Unlimit --diskSpace 0 --bandwidth 0 --emailAccounts 100000 --dataBases 100000 --ftpAccounts 100000 --allowedDomains 0
 /usr/bin/cyberpanel createWebsite --package 1GB --owner admin --domainName $hostname_i --email admin@$hostname_i --php 7.2
+
 /usr/bin/cyberpanel issueSSL --domainName $hostname_i
 /usr/bin/cyberpanel issueSelfSignedSSL --domainName $hostname_i
+
+s='*:443' ; r='127.0.0.1:8443' ; sed -i "s#$s#$r#g" /usr/local/lsws/conf/httpd_config.conf;
+service lsws stop
+sleep 10
+service lsws restart
 
 
 yum -y install memcached
@@ -210,41 +213,42 @@ systemctl restart lscpd
 clear
 netstat -lntup|grep litespeed
 
-latest_version=`curl -L https://raw.githubusercontent.com/duy13/vDDoS-Protection/master/CHANGELOG.txt|grep '*vDDoS-' |awk 'NR==1' |tr -d '*vDDoS-'|tr -d ':'`
-curl -L https://github.com/duy13/vDDoS-Protection/raw/master/vddos-$latest_version-centos7 -o /usr/bin/vddos
-goc=`curl -L https://raw.githubusercontent.com/duy13/vDDoS-Protection/master/md5sum.txt --silent | grep "vddos-$latest_version-centos7" |awk 'NR==1 {print $1}'`
-tai=`md5sum /usr/bin/vddos | awk 'NR==1 {print $1}'`
-if [ "$goc" != "$tai" ]; then
-curl -L https://sourceforge.net/projects/vddos-protection/files/vddos-$latest_version-centos7 -o /usr/bin/vddos
+# Install vDDoS Proxy Protection:
+
+latest_version=`/usr/bin/curl -L https://raw.githubusercontent.com/duy13/vDDoS-Protection/master/CHANGELOG.txt|grep '*vDDoS-' |awk 'NR==1' |tr -d '*vDDoS-'|tr -d ':'`
+/usr/bin/curl -L https://github.com/duy13/vDDoS-Protection/raw/master/vddos-$latest_version.tar.gz -o vddos-$latest_version.tar.gz
+
+originhash=`curl -L https://raw.githubusercontent.com/duy13/vDDoS-Protection/master/md5sum.txt --silent | grep "vddos-$latest_version.tar.gz" |awk 'NR=1 {print $1}'`
+downloadhash=`md5sum vddos-$latest_version.tar.gz | awk 'NR=1 {print $1}'`
+if [ "$originhash" != "$downloadhash" ]; then
+	echo 'Download vddos-'$latest_version'.tar.gz from Github.com failed! Try Downloading from SourceForge.net...'
+	rm -rf vddos-$latest_version.tar.gz
+	curl -L https://sourceforge.net/projects/vddos-protection/files/vddos-$latest_version.tar.gz -o vddos-$latest_version.tar.gz
+
+	originhash=`curl -L https://sourceforge.net/projects/vddos-protection/files/md5sum.txt --silent | grep "vddos-$latest_version.tar.gz" |awk 'NR=1 {print $1}'`
+	downloadhash=`md5sum vddos-$latest_version.tar.gz | awk 'NR=1 {print $1}'`
+	if [ "$originhash" != "$downloadhash" ]; then
+		echo 'Download vddos-'$latest_version'.tar.gz from SourceForge.net failed! Try Downloading from Files.voduy.com...'
+		rm -rf vddos-$latest_version.tar.gz
+		curl -L https://files.voduy.com/vDDoS-Proxy-Protection/vddos-$latest_version.tar.gz -o vddos-$latest_version.tar.gz
+	fi
+
 fi
 
-chmod 700 /usr/bin/vddos
-/usr/bin/vddos setup
-/usr/bin/vddos autostart
+tar -xvf vddos-$latest_version.tar.gz >/dev/null 2>&1
+cd vddos-$latest_version
+chmod 755 -R *.sh  >/dev/null 2>&1
+chmod 755 -R */*.sh  >/dev/null 2>&1
+./install.sh master
 
 if [ -f /vddos/vddos ]; then
-	echo 'Install vDDoS Proxy Protection Done!'
-	yum -y install curl zip unzip  >/dev/null 2>&1
-	# Install vDDoS Layer4 Mapping:
-	curl -L https://github.com/duy13/vDDoS-Layer4-Mapping/raw/master/vddos-layer4-mapping -o /usr/bin/vddos-layer4 >/dev/null 2>&1
+
+	curl -L https://github.com/duy13/vDDoS-Layer4-Mapping/raw/master/vddos-layer4-mapping -o /usr/bin/vddos-layer4
 	chmod 700 /usr/bin/vddos-layer4
-	echo 'Install vDDoS Layer4 Mapping Done!'
 
-	# Install vDDoS Auto Add:
-	curl -L https://github.com/duy13/vDDoS-Auto-Add/archive/master.zip -o vddos-auto-add.zip  >/dev/null 2>&1; unzip vddos-auto-add.zip  >/dev/null 2>&1; rm -f vddos-auto-add.zip
-	mv vDDoS-Auto-Add-master /vddos/auto-add
-	chmod 700 /vddos/auto-add/cron.sh; chmod 700 /vddos/auto-add/vddos-add.sh
-	ln -s /vddos/auto-add/vddos-add.sh /usr/bin/vddos-add
-	ln -s /vddos/auto-add/cron.sh /usr/bin/vddos-autoadd
-	echo 'Install vDDoS Auto Add Done!'
+	echo 'Install vDDoS Proxy Protection Done!'
 
-	# Install vDDoS Auto Switch:
-	curl -L https://github.com/duy13/vDDoS-Auto-Switch/archive/master.zip -o vddos-auto-switch.zip  >/dev/null 2>&1; unzip vddos-auto-switch.zip  >/dev/null 2>&1; rm -f vddos-auto-switch.zip
-	mv vDDoS-Auto-Switch-master /vddos/auto-switch
-	chmod 700 /vddos/auto-switch/cron.sh; chmod 700 /vddos/auto-switch/vddos-switch.sh
-	ln -s /vddos/auto-switch/cron.sh /usr/bin/vddos-autoswitch
-	ln -s /vddos/auto-switch/vddos-switch.sh /usr/bin/vddos-switch
-	echo 'Install vDDoS Auto Switch Done!'
+	/root/.acme.sh/acme.sh --set-default-ca  --server  letsencrypt >/dev/null 2>&1
 
 else
 	echo 'Install vDDoS Proxy Protection Failed!'
