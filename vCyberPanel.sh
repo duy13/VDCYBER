@@ -277,6 +277,8 @@ fi
 
 echo '# Default Setting for vddos-add command:
 SSL				Auto
+DNS_sleep 		66
+DNS_alias_mode	no
 Cache			no
 Security		no
 HTTP_Listen		http://0.0.0.0:80
