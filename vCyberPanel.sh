@@ -276,7 +276,7 @@ wget -O -  https://get.acme.sh | sh
 fi
 
 echo '# Default Setting for vddos-add command:
-SSL				Auto
+SSL				auto
 DNS_sleep 		66
 DNS_alias_mode	no
 Cache			no
